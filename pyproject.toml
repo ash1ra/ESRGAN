@@ -5,6 +5,10 @@ description = "PyTorch Enhanced Super Resolution Generative Adversarial Network 
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "matplotlib>=3.10.7",
+    "safetensors>=0.6.2",
+    "seaborn>=0.13.2",
     "torch>=2.9.0",
+    "torchmetrics>=1.8.2",
     "torchvision>=0.24.0",
 ]
