@@ -64,9 +64,9 @@ BEST_PSNR_CHECKPOINT_DIR_PATH = Path("checkpoints/psnr_best")
 ESRGAN_CHECKPOINT_DIR_PATH = Path("checkpoints/esrgan_latest")
 BEST_ESRGAN_CHECKPOINT_DIR_PATH = Path("checkpoints/esrgan_best")
 
-INFERENCE_INPUT_PATH = Path("images/inference_img_1.jpg")
-INFERENCE_OUTPUT_PATH = Path("images/sr_img_1.png")
-INFERECE_COMPARISON_IMAGE_PATH = Path("images/comparison_img_1.png")
+INFERENCE_INPUT_IMG_PATH = Path("images/inference_img_1.jpg")
+INFERENCE_OUTPUT_IMG_PATH = Path("images/sr_img_1.png")
+INFERECE_COMPARISON_IMG_PATH = Path("images/comparison_img_1.png")
 
 
 def create_logger(
