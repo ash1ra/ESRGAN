@@ -4,6 +4,7 @@ from typing import Literal
 import torch
 from torch import nn, optim
 from torch.amp import GradScaler, autocast
+from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
@@ -52,10 +53,13 @@ def train_step(
 
         if generator_scaler:
             generator_scaler.scale(content_loss).backward()
+            generator_scaler.unscale_(generator_optimizer)
+            clip_grad_norm_(generator.parameters(), max_norm=1.0)
             generator_scaler.step(generator_optimizer)
             generator_scaler.update()
         else:
             content_loss.backward()
+            clip_grad_norm_(generator.parameters(), max_norm=1.0)
             generator_optimizer.step()
 
         if i % config.PRINT_FREQUENCY == 0:
