@@ -3,6 +3,7 @@ from typing import Literal
 
 import torch
 import torch.nn.functional as F
+from safetensors.torch import load_file
 from torch import Tensor, nn
 from torchvision.io import decode_image, write_png
 from torchvision.transforms import v2 as transforms
@@ -12,6 +13,31 @@ from models import Generator
 from utils import compare_imgs, convert_img, load_checkpoint
 
 logger = config.create_logger("INFO", __file__)
+
+
+def apply_network_interpolation(
+    model: nn.Module,
+    params_psnr: dict,
+    params_esrgan: dict,
+    alpha: float,
+) -> None:
+    logger.info("Creating network interpolated model...")
+
+    params_interpolated = dict()
+
+    for key in params_psnr.keys():
+        if key in params_esrgan:
+            tensor_psnr = params_psnr[key].float()
+            tensor_esrgan = params_esrgan[key].float()
+
+            params_interpolated[key] = (1 - alpha) * tensor_psnr + alpha * tensor_esrgan
+        else:
+            logger.warning(
+                f'Key "{key}" not found in ESRGAN model. Copying from PSNR-oriented model...'
+            )
+            params_interpolated[key] = params_psnr[key].float()
+
+    model.load_state_dict(params_interpolated)
 
 
 def upscale_img_tiled(
@@ -110,7 +136,10 @@ def inference(
     use_downscale: bool = False,
     use_tiling: bool = True,
     create_comparisson: bool = False,
-    orientation: Literal["horizontal", "vertical"] | None = None,
+    comparisson_path: Path | None = None,
+    orientation: Literal["horizontal", "vertical"] = "vertical",
+    use_network_interpolation: bool = False,
+    alpha: float = 0.8,
     device: Literal["cpu", "cuda"] = "cpu",
 ) -> None:
     if not input_path.exists():
@@ -119,7 +148,7 @@ def inference(
     if input_path.suffix.lower() not in (".jpg", ".jpeg", ".png"):
         raise ValueError("Input image must be in JPG or PNG format")
 
-    lr_img_tensor_uint8 = decode_image(str(config.INFERENCE_INPUT_PATH))
+    lr_img_tensor_uint8 = decode_image(str(input_path))
 
     original_lr_img_tensor_uint8 = lr_img_tensor_uint8
 
@@ -158,6 +187,34 @@ def inference(
         .to(device)
     )
 
+    if use_network_interpolation:
+        if (
+            config.BEST_PSNR_CHECKPOINT_DIR_PATH / "generator.safetensors"
+        ).exists() and (
+            config.BEST_ESRGAN_CHECKPOINT_DIR_PATH / "generator.safetensors"
+        ).exists():
+            params_psnr = load_file(
+                filename=config.BEST_PSNR_CHECKPOINT_DIR_PATH / "generator.safetensors",
+                device=device,
+            )
+            params_esrgan = load_file(
+                filename=config.BEST_ESRGAN_CHECKPOINT_DIR_PATH
+                / "generator.safetensors",
+                device=device,
+            )
+
+            apply_network_interpolation(
+                model=model,
+                params_psnr=params_psnr,
+                params_esrgan=params_esrgan,
+                alpha=alpha,
+            )
+        else:
+            logger.error(
+                "PSNR-oriented Generator weights or ESRGAN Generator weights not found"
+            )
+            raise FileNotFoundError
+
     if use_tiling:
         logger.info(
             f"Starting tiled inference with tile size: {config.TILE_SIZE} and tile overlap: {config.TILE_OVERLAP}..."
@@ -175,28 +232,32 @@ def inference(
         with torch.inference_mode():
             sr_img_tensor = model(lr_img_tensor).cpu()
 
-    if create_comparisson and orientation is not None:
-        logger.info("Creating comparison image...")
+    if create_comparisson and comparisson_path:
+        if comparisson_path.parent.exists():
+            logger.info("Creating comparison image...")
 
-        original_lr_img_tensor = convert_img(
-            original_lr_img_tensor_uint8, source="uint8", target="[-1, 1]"
-        )
+            original_lr_img_tensor = convert_img(
+                original_lr_img_tensor_uint8, source="uint8", target="[-1, 1]"
+            )
 
-        compare_imgs(
-            lr_img_tensor=lr_img_tensor,
-            sr_img_tensor=sr_img_tensor,
-            hr_img_tensor=original_lr_img_tensor
-            if orientation == "horizontal"
-            else None,
-            output_path=config.INFERECE_COMPARISON_IMAGE_PATH,
-            scaling_factor=scaling_factor,
-            orientation=orientation,
-        )
+            compare_imgs(
+                lr_img_tensor=lr_img_tensor,
+                sr_img_tensor=sr_img_tensor,
+                hr_img_tensor=original_lr_img_tensor
+                if orientation == "horizontal"
+                else None,
+                output_path=comparisson_path,
+                scaling_factor=scaling_factor,
+                orientation=orientation,
+            )
+        else:
+            logger.error("Comparison image path not found")
+            raise FileNotFoundError
 
     sr_img_tensor_uint8 = convert_img(sr_img_tensor, source="[-1, 1]", target="uint8")
 
-    config.INFERENCE_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    write_png(sr_img_tensor_uint8.squeeze(0), str(config.INFERENCE_OUTPUT_PATH))
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    write_png(sr_img_tensor_uint8.squeeze(0), str(output_path))
 
     logger.info(f"Upscaled image was saved to {output_path}")
 
@@ -226,13 +287,16 @@ def main() -> None:
 
     inference(
         model=generator,
-        input_path=config.INFERENCE_INPUT_PATH,
-        output_path=config.INFERENCE_OUTPUT_PATH,
+        input_path=config.INFERENCE_INPUT_IMG_PATH,
+        output_path=config.INFERENCE_OUTPUT_IMG_PATH,
         scaling_factor=config.SCALING_FACTOR,
         use_downscale=True,
         use_tiling=False,
         create_comparisson=True,
+        comparisson_path=config.INFERECE_COMPARISON_IMG_PATH,
         orientation="vertical",
+        use_network_interpolation=True,
+        alpha=0.8,
         device=device,
     )
 
