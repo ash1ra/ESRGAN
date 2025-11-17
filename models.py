@@ -34,6 +34,7 @@ class ConvBlock(nn.Module):
         out_channels: int,
         kernel_size: int,
         stride: int = 1,
+        norm_layer: bool = False,
         activation: Literal["leaky_relu", "tanh"] | None = None,
     ) -> None:
         super().__init__()
@@ -49,6 +50,9 @@ class ConvBlock(nn.Module):
                 padding=kernel_size // 2,
             )
         )
+
+        if norm_layer:
+            self.conv_block.append(nn.BatchNorm2d(out_channels))
 
         if activation:
             match activation.lower():
@@ -268,6 +272,7 @@ class Discriminator(nn.Module):
                     out_channels=out_channels,
                     kernel_size=kernel_size,
                     stride=stride,
+                    norm_layer=True,
                     activation="leaky_relu",
                 )
             )
