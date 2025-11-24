@@ -1,4 +1,4 @@
-# PyTorch ESRGAN for SISR task (WIP)
+# PyTorch ESRGAN for SISR task
 
 This project implements a **ESRGAN** (Enhanced Super-Resolution Generative Adversarial Network) model for **SISR** (Single Image Super-Resolution) task. The primary goal is to upscale low-resolution (LR) images by a given factor (2x, 4x, 8x) to produce super-resolution (SR) images with high fidelity and perceptual quality.
 
@@ -6,13 +6,18 @@ This implementation is based on the paper [ESRGAN: Enhanced Super-Resolution Gen
 
 ## Demonstration
 
-The following images compare the standard bicubic interpolation with the output of the ESRGAN model.
+The following images compare the standard bicubic interpolation with the output of the ESRGAN model. Images with title **ESRGAN (alpha=0.8)** was created with **Network Interpolation** technique with parameter `alpha=0.8`.
 
-![Baboon comparison image](images/comparison_baboon.png)
-![Butterfly comparison image](images/comparison_butterfly.png)
-![Bird comparison image](images/comparison_bird.png)
-![Man comparison image](images/comparison_man.png)
-![PPT3 comparison image](images/comparison_ppt3.png)
+![Baboon comparison image](images/comparison_img_baboon.png)
+![Baboon comparison image with `alpha=0.8`](images/comparison_img_baboon_alpha_80.png)
+![Butterfly comparison image](images/comparison_img_butterfly.png)
+![Butterfly comparison image with `alpha=0.8`](images/comparison_img_butterfly_alpha_80.png)
+![Bird comparison image](images/comparison_img_bird.png)
+![Bird comparison image with `alpha=0.8`](images/comparison_img_bird_alpha_80.png)
+![Man comparison image](images/comparison_img_man.png)
+![Man comparison image with `alpha=0.8`](images/comparison_img_man_alpha_80.png)
+![PPT3 comparison image](images/comparison_img_ppt3.png)
+![PPT3 comparison image with `alpha=0.8`](images/comparison_img_ppt3_alpha_80.png)
 
 ## Key Features
 
@@ -279,13 +284,13 @@ The training process is divided into two distinct stages, as recommended by the 
 
 ![PSNR-oriented model training metrics](images/psnr_training_metrics.png)
 
-The first stage involved training the **PSNR-oriented generator** (using L1 Loss) for **500 epochs**. This stage took N hours. The final model was selected based on the epoch with the **highest validation PSNR**.  
+The first stage involved training the **PSNR-oriented generator** (using L1 Loss) for **250 epochs**. This stage took nearly 16 hours. The final model was selected based on the epoch with the **highest validation PSNR**.  
 
 ### Stage 2: GAN Fine-Tuning
 
 ![ESRGAN model training metrics](images/esrgan_training_metrics.png)
 
-The pre-trained weights from Stage 1 were used to initialize the generator for **GAN fine-tuning**. This model was then trained for **500 epochs** using the full ESRGAN loss (Perceptual, RaGAN, and L1). This stage took M hours. The final model was selected based on the epoch with the **lowest validation loss**.
+The pre-trained weights from Stage 1 were used to initialize the generator for **GAN fine-tuning**. This model was then trained for **250 epochs** using the full ESRGAN loss (Perceptual, RaGAN, and L1). This stage took nearly 35.5 hours. The final model was selected based on the epoch with the **lowest validation loss**.
 
 ## Benchmark Evaluation (4x Upscaling)
 
@@ -296,10 +301,10 @@ Results are compared with the original ESRGAN paper.
 **PSNR (dB) / SSIM Comparison**
 | Dataset | ESRGAN (this project) | ESRGAN (paper)
 | :--- | :---: | :---: |
-| **Set5** | 0.0/0.0 | 32.73/0.9011
-| **Set14** | 0.0/0.0 | 28.99/0.7917 
-| **BSDS100** | 0.0/0.0 | 27.85/0.7455
-| **Urban100**| 0.0/0.0 | 27.03/0.8153
+| **Set5** | 29.11/0.8412 | 32.73/0.9011
+| **Set14** | 24.10/0.7014 | 28.99/0.7917 
+| **BSDS100** | 23.03/0.6548 | 27.85/0.7455
+| **Urban100**| 21.46/0.7124 | 27.03/0.8153
 
 ***Note**: The results from this project are expected to differ from those in the original paper. The paper's authors achieved their results by training on the **DF2K** dataset. This project, in contrast, was trained on the **DF2K_OST** dataset. Minor differences in training duration, datasets and final hyperparameters will inevitably lead to different metrics.*  
 
@@ -307,13 +312,18 @@ Results are compared with the original ESRGAN paper.
 
 ## Visual Comparisons
 
-The following images compare the standard bicubic interpolation with the output of the ESRGAN model. I tried to use different images that would be visible difference in results with anime images, photos etc.
+The following images compare the standard bicubic interpolation with the output of the ESRGAN model. I tried to use different images that would be visible difference in results with anime images, photos etc. Images with title **ESRGAN (alpha=0.8)** was created with **Network Interpolation** technique with parameter `alpha=0.8`.
 
 ![Comparisson image 1](images/comparison_img_1.png)
+![Comparisson image 1 with `alpha=0.8`](images/comparison_img_1_alpha_80.png)
 ![Comparisson image 2](images/comparison_img_2.png)
+![Comparisson image 2 with `alpha=0.8`](images/comparison_img_2_alpha_80.png)
 ![Comparisson image 3](images/comparison_img_3.png)
+![Comparisson image 3 with `alpha=0.8`](images/comparison_img_3_alpha_80.png)
 ![Comparisson image 4](images/comparison_img_4.png)
+![Comparisson image 4 with `alpha=0.8`](images/comparison_img_4_alpha_80.png)
 ![Comparisson image 5](images/comparison_img_5.png)
+![Comparisson image 5 with `alpha=0.8`](images/comparison_img_5_alpha_80.png)
 
 ## Acknowledgements
 
