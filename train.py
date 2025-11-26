@@ -545,15 +545,6 @@ def main() -> None:
                 discriminator_scheduler=discriminator_scheduler,
                 device=device,
             )
-
-            if generator_scheduler and discriminator_scheduler and start_epoch > 1:
-                epochs_to_skip = start_epoch - 1
-
-                for _ in range(epochs_to_skip):
-                    generator_scheduler.step()
-                    discriminator_scheduler.step()
-
-                logger.info(f"Schedulers advanced to epoch {start_epoch}")
         else:
             logger.warning(
                 "ESRGAN checkpoints not found, start training from the beginning..."
