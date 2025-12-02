@@ -1,4 +1,4 @@
-# PyTorch ESRGAN for SISR task
+# ESRGAN for SISR task using PyTorch
 
 This project implements a **ESRGAN** (Enhanced Super-Resolution Generative Adversarial Network) model for **SISR** (Single Image Super-Resolution) task. The primary goal is to upscale low-resolution (LR) images by a given factor (2x, 4x, 8x) to produce super-resolution (SR) images with high fidelity and perceptual quality.
 
@@ -21,7 +21,7 @@ The following images compare the standard bicubic interpolation with the output 
 
 ## Key Features
 
-This project is based on my [SRGAN implementation](https://github.com/ash1ra/PyTorch-SRGAN-SISR-DF2K_OST). The following key features represent the main upgrades implemented to transition to the ESRGAN architecture and improve training stability:
+This project is based on my [SRGAN implementation](https://github.com/ash1ra/SRGAN). The following key features represent the main upgrades implemented to transition to the ESRGAN architecture and improve training stability:
 
 - Replaces the standard Residual Blocks with **Residual-in-Residual Dense Blocks (RRDB)**, providing a significantly deeper and more powerful generator architecture.   
 - **Completely removes all Batch Normalization (BN) layers** from the generator to eliminate the artifacts they introduce and to stabilize deep network training.  
@@ -179,8 +179,8 @@ Explanation of some settings:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/ash1ra/PyTorch-ESRGAN-SISR-DF2K_OST.git
-cd PyTorch-ESRGAN-SISR-DF2K_OST
+git clone https://github.com/ash1ra/ESRGAN.git
+cd ESRGAN
 ```
 
 2. Create `.venv` and install dependencies:
